@@ -87,6 +87,7 @@ class star {
 private:
     double q[DIMENSION]; //an array with 3 elements (position)
     double p[DIMENSION]; //an array with 3 elements (velocity)
+    double E;
 public:
     void setstar(double *x, double *v);
     void printcoords();
@@ -102,7 +103,7 @@ public:
     double settime(double e);
     
     //function for evaluating the energy
-    //double getE();
+    double getE(potential *Phi);
     
     //function for evaluating the angular momentum
     
@@ -111,7 +112,7 @@ public:
     
 };
 //-----------------------------------------------------------------------
-/*
+
 //calculating the kinetic energy and potential, to get total energy---------------------------------------------------------
 double star::getE(potential *Phi) {
     double Ekin = 0.0;
@@ -121,7 +122,7 @@ double star::getE(potential *Phi) {
 
     return (Ekin + Phi->getpot(q));
 }//----------------------------------------------------------------------------------------------------
-*/
+
     
 
 
@@ -169,11 +170,12 @@ void star::leapfrog(double h, potential *Phi) {
     kick(h, force);   //kick
     drift(h2);        //drift
     delete [] force; //deleting memory so it won't take up space allocated by the 'new' operator
+    E = getE(Phi);
 }
 
 
 void star::printfile(ofstream& fileout){
-  fileout << q[0] << " " << q[1] << " " << q[2] << " " << p[0] << " " << p[1] << " " << p[2]  << endl;
+  fileout << q[0] << " " << q[1] << " " << q[2] << " " << p[0] << " " << p[1] << " " << p[2]  << " " << E << endl;
 }
 //void function for
 void star::getforce(double *force, potential *Phi) {
@@ -214,8 +216,8 @@ int main() {
 
     //opening the file to print to
     ofstream myfile ("coor.dat", std::ios_base::app);
-    for (int i = 0; i < 1000; i++) {   //one thousand times
-        for (int ii = 0; ii < 300000; ii++) { //for each one time out of a thousand, do it 300000 times
+    for (int i = 0; i < 1000; i++) {   //one thousand times //how many time you print to file
+        for (int ii = 0; ii < 10000; ii++) { //for each one time out of a thousand, do it 300000 times
             dt = pedro.settime(e);
                 
             pedro.leapfrog(dt, &Phi); //the leapfrog for that particular star
@@ -224,6 +226,8 @@ int main() {
         //printing the new coordinates after applying the leapfrog
         pedro.printcoords();
         pedro.printfile(myfile);
+        //E = pedro.getE(&Phi);
+        //cout << E <<endl;
             }
     myfile.close();
     return 0;
