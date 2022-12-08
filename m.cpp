@@ -118,10 +118,8 @@ double star::getE(potential *Phi) {
     for (int i = 0; i < 3; i++) {
         Ekin += 0.5*p[i]*p[i]; //0.5*velocity^2
     }
-    
-    Phi->getpot(q); //calling getpot with position q
 
-    return (Ekin + );
+    return (Ekin + Phi->getpot(q));
 }//----------------------------------------------------------------------------------------------------
 */
     
