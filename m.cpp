@@ -1,3 +1,4 @@
+
 //
 //  main.cpp
 //  frog
@@ -5,7 +6,6 @@
 //  Created by Aisyah Zainal on 05/07/2020.
 //  Copyright © 2020 Aisyah Zainal. All rights reserved.
 //
-
 //ofstream: outputfilestream: to create and write to files
 //ifstream: inputfilestream: to read from files
 //fstream: filestream: to both write to and read from files
@@ -20,22 +20,18 @@
 #include<mutex>
 #include<algorithm>
 
-
 #include <math.h>
 #include <sstream>
 #include <iomanip>
 #include <stdio.h>
 #include <stdlib.h>
 
-
 #define DIMENSION 3
 #define GM 10.0   //G=1
 //Mass of galaxy M = 10 solar_mass
 
-
 using namespace std;
 using std::setprecision;  //for decimal precision...
-
 
 //all about units
 //so that the units are dimensionless in the programming
@@ -47,9 +43,6 @@ using std::setprecision;  //for decimal precision...
 //a function to make dimensionless
 
 //a function to convert back to actual units
-
-
-
 
 
 //=========================================================================
@@ -88,6 +81,7 @@ private:
     double q[DIMENSION]; //an array with 3 elements (position)
     double p[DIMENSION]; //an array with 3 elements (velocity)
     double E;
+   // double L[DIMENSION]; //an array for the angular momentum
 public:
     void setstar(double *x, double *v);
     void printcoords();
@@ -106,6 +100,7 @@ public:
     double getE(potential *Phi);
     
     //function for evaluating the angular momentum
+    double getL();
     
     //function for applying the RK4 method
     //void runge-kutta();
@@ -113,18 +108,21 @@ public:
 };
 //-----------------------------------------------------------------------
 
-//calculating the kinetic energy and potential, to get total energy---------------------------------------------------------
+//angular momentum L
+/*
+double star::getL(){
+    return  ;
+};
+*/
+
+//calculating the kinetic energy and potential, to get total energy---------------------------------------------
 double star::getE(potential *Phi) {
     double Ekin = 0.0;
     for (int i = 0; i < 3; i++) {
         Ekin += 0.5*p[i]*p[i]; //0.5*velocity^2
     }
-
     return (Ekin + Phi->getpot(q));
 }//----------------------------------------------------------------------------------------------------
-
-    
-
 
 //function for varying the time-step h, depending on r and v values of particle
 double star::settime(double e){
@@ -172,11 +170,6 @@ void star::leapfrog(double h, potential *Phi) {
     delete [] force; //deleting memory so it won't take up space allocated by the 'new' operator
     E = getE(Phi);
 }
-
-
-void star::printfile(ofstream& fileout){
-  fileout << q[0] << " " << q[1] << " " << q[2] << " " << p[0] << " " << p[1] << " " << p[2]  << " " << E << endl;
-}
 //void function for
 void star::getforce(double *force, potential *Phi) {
     Phi->getforce(q, force);  //calling getforce with position q and force
@@ -185,8 +178,12 @@ void star::getforce(double *force, potential *Phi) {
 //Phi is a pointer
 //a pointer stores the address of a variable
 // writing *Phi is obtaining the value of variable, not address
-//=========================================================================
 
+void star::printfile(ofstream& fileout){
+  fileout << q[0] << " " << q[1] << " " << q[2] << " " << p[0] << " " << p[1] << " " << p[2]  << " " << E << endl;
+}
+
+//=========================================================================
 
 
 //THE MAIN FUNCTION
@@ -195,7 +192,7 @@ int main() {
     double *v = new double[DIMENSION];  //value of pointer allocated dynamical memory
     //the values of each array
     x[0] = 8.0; x[1] = 0.0; x[2] = 0.0;
-    v[0] = 0.0; v[1] = 1.0; v[2] = 0.3;
+    v[0] = 0.0; v[1] = 1.0; v[2] = 0.0;
 
     star pedro; //calling it pedro
     pedro.setstar(x, v); //setting the position x and velocity v for pedro
@@ -205,26 +202,25 @@ int main() {
     pedro.printcoords();
 
     //defining the step-length //which is a constant throughout code
-    double h = 1.0e-6;  //unit of timestep is: 1 Myr
-    //here, h is 1 year
+    double h = 1.0;  //unit of timestep is: 1 Myr //here, h is 1 year
+    //my original 1.0e-6
     
     //defining the parameter constant e
-    double e=10e-6;
+    double e = 1.0e-5; //my original 1.0e-7
     double dt;
 
     potential Phi; //calling it Phi //making an instance of potential called phi
 
     //opening the file to print to
     ofstream myfile ("coor.dat", std::ios_base::app);
-    for (int i = 0; i < 1000; i++) {   //one thousand times //how many time you print to file
-        for (int ii = 0; ii < 10000; ii++) { //for each one time out of a thousand, do it 300000 times
+    for (int i = 0; i < 1000; i++) {   //one thousand times //how many times you print to file
+        for (int ii = 0; ii < 100000; ii++) { //for each one time out of a thousand, do it 300000 times
+                                             //actually implementing the leapfrog
             dt = pedro.settime(e);
-                
             pedro.leapfrog(dt, &Phi); //the leapfrog for that particular star
-        }                   //address of variable's value: &Phi
+        }                             //actual leapfrog, do it 100000 times
 
-        //printing the new coordinates after applying the leapfrog
-        pedro.printcoords();
+        pedro.printcoords();         //printing the new coordinates after applying the leapfrog
         pedro.printfile(myfile);
         //E = pedro.getE(&Phi);
         //cout << E <<endl;
