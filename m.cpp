@@ -81,7 +81,7 @@ private:
     double q[DIMENSION]; //an array with 3 elements (position)
     double p[DIMENSION]; //an array with 3 elements (velocity)
     double E;
-   // double L[DIMENSION]; //an array for the angular momentum
+//    double L[DIMENSION]; //an array for the angular momentum
 public:
     void setstar(double *x, double *v);
     void printcoords();
@@ -99,18 +99,32 @@ public:
     //function for evaluating the energy
     double getE(potential *Phi);
     
+    /*
     //function for evaluating the angular momentum
-    double getL();
+    double getL(*p,*q);
     
     //function for applying the RK4 method
-    //void runge-kutta();
-    
+    void runge_kutta();
+    */
+
 };
 //-----------------------------------------------------------------------
 
-//angular momentum L
+//==================================================================
+//===========================================================
 /*
-double star::getL(){
+//RK4 method
+void star::runge_kutta(){
+
+
+};
+*/
+//====================================================================
+//====================================================================
+
+/*
+//angular momentum L
+double star::getL(*p,*q){
     return  ;
 };
 */
@@ -202,11 +216,11 @@ int main() {
     pedro.printcoords();
 
     //defining the step-length //which is a constant throughout code
-    double h = 1.0;  //unit of timestep is: 1 Myr //here, h is 1 year
+    double h = 10e7;  //unit of timestep is: 1 Myr //here, h is 1 year
     //my original 1.0e-6
     
     //defining the parameter constant e
-    double e = 1.0e-5; //my original 1.0e-7
+    double e = 1.0e-7; //my original 1.0e-7
     double dt;
 
     potential Phi; //calling it Phi //making an instance of potential called phi
