@@ -80,12 +80,12 @@ public:
     //double getL(*p,*q);
     
     //function for applying the RK4 method
-    void runge_kutta(double *h, potential Phi);
+    void runge_kutta(double h, potential *Phi);
     //RK_stepA
-    void stepA();
-    void stepB();
-    void stepC();
-    void stepD();
+    void stepA(double h, double *force);
+    void stepB(double h, double *force);
+    void stepC(double h, double *force);
+    void stepD(double h, double *force);
 
 
 };
@@ -93,63 +93,59 @@ public:
 
 //===========================================================
 //RK4 method
-void star::runge_kutta(double *h, potential Phi){
-    stepA();
-    stepB(h);
-    stepC(h);
-    stepD(h);
+void star::runge_kutta(double h, potential *Phi){
     
-    //position q update
-    q += h/6.0 *(k1r + k2r + k3r + k4r);
-    //velocity p update
-    p += h/6.0 *(k1v + k2v + k3v + k4v);
+    double *force = new double[3];
+    double hs=h;
+    getforce(force, Phi);
+    stepA(hs,force);
+    stepB(hs,force);
+    stepC(hs,force);
+    stepD(hs,force);
+    
+    for (int i = 0; i < DIMENSION; i++){
+        //position q update
+        q[i] += h/6.0 *(k1r[i] + k2r[i] + k3r[i] + k4r[i]);
+        //velocity p update
+        p[i] += h/6.0 *(k1v[i] + k2v[i] + k3v[i] + k4v[i]);
+    }
+    
+    E = getE(Phi);
+    E*=1.0e11;
+    
+    
 }
 //====================================================================
 //in each step, loop over each array element
 //the derivative in the k1 direction
-void star::stepA(){
+void star::stepA(double h, double *force){
     for (int i = 0; i < DIMENSION; i++){
         k1r[i] = p[i];     //k1r = velocity
-    }
-    
-    getforce(force, Phi);
-    for (int i = 0; i < DIMENSION; i++){
         k1v[i] = force[i];     //k1v = acceleration
     }
+    
 }
 //------------------------------------------------
 //the derivative in the k2 direction
-void star::stepB(double *h){
+void star::stepB(double h, double *force){
     for (int i = 0; i < DIMENSION; i++){
         k2r[i] = p[i] + k1r[i]*h/2.0;   //velocity + k1r h/2
-    }
-    
-    getforce(force, Phi);
-    for (int i = 0; i < DIMENSION; i++){
         k2v[i] = force[i] + k1v[i]*h/2.0;   //accel + k1v h/2
     }
 }
 //------------------------------------------------
 //the derivative in the k3 direction
-void star::stepC(double *h){
-    for (int i = 0; i < DIMENSION; i++)
+void star::stepC(double h, double *force){
+    for (int i = 0; i < DIMENSION; i++){
         k3r[i] = p[i] + k2r[i]*h/2.0;//velocity + k2r h/2
-    }
-
-    getforce(force, Phi);
-    for (int i = 0; i < DIMENSION; i++)
         k3v[i] = force[i] + k2v[i]*h/2.0;  //accel + k2v h/2
     }
 }
 //------------------------------------------------
 //the derivative in the k4 direction
-void star::stepD(double *h){
+void star::stepD(double h, double *force){
     for (int i = 0; i < DIMENSION; i++){
         k4r[i] = p[i] + k3r[i]*h;     //velocity + k3r h
-    }
-    
-    getforce(force, Phi);
-    for (int i = 0; i < DIMENSION; i++){
         k4v[i] = force[i] + k3v[i]*h;     //accel + k3v h
     }
 }
@@ -209,7 +205,7 @@ int main() {
     double *x = new double[DIMENSION];  //value of pointer allocated dynamical memory
     double *v = new double[DIMENSION];  //value of pointer allocated dynamical memory
     //the values of each array
-    x[0] = 8.0; x[1] = 0.0; x[2] = 0.0;
+    x[0] = 6.0; x[1] = 0.0; x[2] = 0.0;
     v[0] = 0.0; v[1] = 1.0; v[2] = 0.0;
 
     star pedro; //calling it pedro
@@ -220,11 +216,11 @@ int main() {
     pedro.printcoords();
 
     //defining the step-length //which is a constant throughout code
-    double h = 1.0;  //unit of timestep is: 1 Myr //here, h is 1 year
+    double h = 1.0e-6;  //unit of timestep is: 1 Myr //here, h is 1 year
     //my original 1.0e-6
     
     //defining the parameter constant e
-    double e = 1.0e-5; //my original 1.0e-7
+    double e = 1.0e-6; //my original 1.0e-7
     double dt;
 
     potential Phi; //calling it Phi //making an instance of potential called phi
