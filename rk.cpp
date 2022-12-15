@@ -1,6 +1,6 @@
 
 #include<iostream>  //for cout, cin
-#include<fstream>   //for writing and reding from files
+#include<fstream>   //for writing and reading from files
 #include<string>
 #include<functional>
 #include<cmath>
@@ -37,10 +37,11 @@ class potential {
 private:
     ;
 public:
-    double getpot(double *pos);
-    void getforce(double *pos, double *res);   
+    double getpot(double *pos); //a getter function
+    void getforce(double *pos, double *res); //a getter function
 };
 //--------------------------------------------------------------------------
+//defining the getter functions
 //a function returning the Kepler potential, depending on r
 double potential::getpot(double *pos) {
         double r = sqrt(pos[0]*pos[0] + pos[1]*pos[1] + pos[2]*pos[2]);
@@ -63,13 +64,13 @@ private:
     double q[DIMENSION]; //an array with 3 elements (position)
     double p[DIMENSION]; //an array with 3 elements (velocity)
     double E;
-    //double L[DIMENSION]; //an array for the angular momentum
+    double L[DIMENSION]; //an array for the angular momentum, in each direction
     double k1r[DIMENSION], k2r[DIMENSION],k3r[DIMENSION], k4r[DIMENSION];
     double k1v[DIMENSION], k2v[DIMENSION],k3v[DIMENSION], k4v[DIMENSION];
 
 public:
-    void setstar(double *x, double *v);
-    void printcoords();
+    void setstar(double *x, double *v); //a constructor
+    void printcoords(); //a constructor
     void getforce(double *force, potential *Phi);
     void printfile(ofstream& fileout);
     //defining the function for varying h
@@ -77,7 +78,7 @@ public:
     //function for evaluating the energy
     double getE(potential *Phi);
     //function for evaluating the angular momentum
-    //double getL(*p,*q);
+    void getL(); //position and velocity are already private!
     
     //function for applying the RK4 method
     void runge_kutta(double h, potential *Phi);
@@ -86,8 +87,6 @@ public:
     void stepB(double h, double *force);
     void stepC(double h, double *force);
     void stepD(double h, double *force);
-
-
 };
 //-----------------------------------------------------------------------
 
@@ -95,13 +94,12 @@ public:
 //RK4 method
 void star::runge_kutta(double h, potential *Phi){
     
-    double *force = new double[3];
-    double hs=h;
+    double *force = new double[3]; //creating memory from the pointer
     getforce(force, Phi);
-    stepA(hs,force);
-    stepB(hs,force);
-    stepC(hs,force);
-    stepD(hs,force);
+    stepA(h,force);
+    stepB(h,force);
+    stepC(h,force);
+    stepD(h,force);
     
     for (int i = 0; i < DIMENSION; i++){
         //position q update
@@ -111,8 +109,10 @@ void star::runge_kutta(double h, potential *Phi){
     }
     
     E = getE(Phi);
-    E*=1.0e11;
+    //E*=1.0e11;
+    //L = getL();
     
+    delete [] force;
     
 }
 //====================================================================
@@ -123,9 +123,7 @@ void star::stepA(double h, double *force){
         k1r[i] = p[i];     //k1r = velocity
         k1v[i] = force[i];     //k1v = acceleration
     }
-    
 }
-//------------------------------------------------
 //the derivative in the k2 direction
 void star::stepB(double h, double *force){
     for (int i = 0; i < DIMENSION; i++){
@@ -133,7 +131,6 @@ void star::stepB(double h, double *force){
         k2v[i] = force[i] + k1v[i]*h/2.0;   //accel + k1v h/2
     }
 }
-//------------------------------------------------
 //the derivative in the k3 direction
 void star::stepC(double h, double *force){
     for (int i = 0; i < DIMENSION; i++){
@@ -141,7 +138,6 @@ void star::stepC(double h, double *force){
         k3v[i] = force[i] + k2v[i]*h/2.0;  //accel + k2v h/2
     }
 }
-//------------------------------------------------
 //the derivative in the k4 direction
 void star::stepD(double h, double *force){
     for (int i = 0; i < DIMENSION; i++){
@@ -151,15 +147,13 @@ void star::stepD(double h, double *force){
 }
 //====================================================================
 
-
-
-
-/*
 //angular momentum L
-double star::getL(*p,*q){
-    return  ;
-};
-*/
+void star::getL(){ //args are position and velocity
+    //double L[DIMENSION] = [0.0, 0.0, 0.0]; //to initialise L
+    for (int i = 0; i < DIMENSION; i++) {
+        L[i] += p[i]*q[i]; //velocity*position
+    }
+}
 
 //calculating the kinetic energy and potential, to get total energy---------------------------------------------
 double star::getE(potential *Phi) {
@@ -195,7 +189,7 @@ void star::getforce(double *force, potential *Phi) {
     Phi->getforce(q, force);  //calling getforce with position q and force
 }
 void star::printfile(ofstream& fileout){
-  fileout << q[0] << " " << q[1] << " " << q[2] << " " << p[0] << " " << p[1] << " " << p[2]  << " " << E << endl;
+  fileout << q[0] << " " << q[1] << " " << q[2] << " " << p[0] << " " << p[1] << " " << p[2]  << " " << E << " " << L[0] << " " << L[1] << " " << L[2] << endl;
 }
 //=========================================================================
 
@@ -204,9 +198,9 @@ void star::printfile(ofstream& fileout){
 int main() {
     double *x = new double[DIMENSION];  //value of pointer allocated dynamical memory
     double *v = new double[DIMENSION];  //value of pointer allocated dynamical memory
-    //the values of each array
-    x[0] = 6.0; x[1] = 0.0; x[2] = 0.0;
-    v[0] = 0.0; v[1] = 1.0; v[2] = 0.0;
+    //the values of each element
+    x[0] = 8.0; x[1] = 0.4; x[2] = 0.0;
+    v[0] = 0.1; v[1] = 1.0; v[2] = 0.2;
 
     star pedro; //calling it pedro
     pedro.setstar(x, v); //setting the position x and velocity v for pedro
@@ -228,7 +222,7 @@ int main() {
     //opening the file to print to
     ofstream myfile ("coor_RK.dat", std::ios_base::app);
     for (int i = 0; i < 1000; i++) {   //one thousand times //how many times you print to file
-        for (int ii = 0; ii < 100000; ii++) { //for each one time out of a thousand, do it 300000 times
+        for (int ii = 0; ii < 10000; ii++) { //for each one time out of a thousand, do it 300000 times
                                              //actually implementing the integrator
             dt = pedro.settime(e);
             pedro.runge_kutta(dt, &Phi); //applying the integrator
@@ -237,8 +231,6 @@ int main() {
         //printing the new coordinates after applying the integrator
         pedro.printcoords();         
         pedro.printfile(myfile);
-        //E = pedro.getE(&Phi);
-        //cout << E <<endl;
             }
     myfile.close();
 
