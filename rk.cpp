@@ -77,8 +77,6 @@ public:
     double settime(double e);
     //function for evaluating the energy
     double getE(potential *Phi);
-    //function for evaluating the angular momentum
-    void getL(); //position and velocity are already private!
     
     //function for applying the RK4 method
     void runge_kutta(double h, potential *Phi);
@@ -106,14 +104,15 @@ void star::runge_kutta(double h, potential *Phi){
         q[i] += h/6.0 *(k1r[i] + k2r[i] + k3r[i] + k4r[i]);
         //velocity p update
         p[i] += h/6.0 *(k1v[i] + k2v[i] + k3v[i] + k4v[i]);
+        
+        L[i] += p[i]*q[i]; //velocity*position
+        
     }
     
     E = getE(Phi);
     //E*=1.0e11;
-    //L = getL();
     
     delete [] force;
-    
 }
 //====================================================================
 //in each step, loop over each array element
@@ -146,15 +145,6 @@ void star::stepD(double h, double *force){
     }
 }
 //====================================================================
-
-//angular momentum L
-void star::getL(){ //args are position and velocity
-    //double L[DIMENSION] = [0.0, 0.0, 0.0]; //to initialise L
-    for (int i = 0; i < DIMENSION; i++) {
-        L[i] += p[i]*q[i]; //velocity*position
-    }
-}
-
 //calculating the kinetic energy and potential, to get total energy---------------------------------------------
 double star::getE(potential *Phi) {
     double Ekin = 0.0;
@@ -199,8 +189,8 @@ int main() {
     double *x = new double[DIMENSION];  //value of pointer allocated dynamical memory
     double *v = new double[DIMENSION];  //value of pointer allocated dynamical memory
     //the values of each element
-    x[0] = 8.0; x[1] = 0.4; x[2] = 0.0;
-    v[0] = 0.1; v[1] = 1.0; v[2] = 0.2;
+    x[0] = 8.0; x[1] = 0.0; x[2] = 0.0;
+    v[0] = 0.0; v[1] = 1.0; v[2] = 0.0;
 
     star pedro; //calling it pedro
     pedro.setstar(x, v); //setting the position x and velocity v for pedro
